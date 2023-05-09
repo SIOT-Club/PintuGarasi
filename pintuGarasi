@@ -1,0 +1,70 @@
+#include <Servo.h>
+
+Servo ourServo[4];
+
+int rainPin = A0; // pin untuk membaca raindrop sensor
+int rainValue = 0; // variabel untuk menyimpan nilai bacaan sensor
+int statusKebuka = 0;
+unsigned long previousMillis = 500;
+const long interval = 500;
+
+void setup() {
+  // inisialisasi serial monitor
+  Serial.begin(9600);
+
+  // set pin untuk membaca raindrop sensor sebagai input
+  pinMode(rainPin, INPUT);
+  ourServo[3].attach(9);
+  ourServo[2].attach(4);
+  ourServo[1].attach(3);
+  ourServo[0].attach(8);
+}
+
+void loop() {
+  // baca nilai dari raindrop sensor
+  rainValue = analogRead(rainPin);
+
+  // tampilkan nilai bacaan pada serial monitor
+  Serial.print("Nilai bacaan sensor: ");
+  Serial.println(rainValue);
+
+  unsigned long currentMillis = millis();
+  if(currentMillis - previousMillis >= interval){
+    previousMillis = currentMillis;
+    if(rainValue <=500 && statusKebuka == 0){
+      for(int i  = 0; i < 3; i++){
+        for(int j = 0; j <= 90; j += 15){
+          ourServo[i].write(j);
+          for(int k = 0; k <= 180; k += 30){
+            ourServo[3].write(k);
+            delay(300);
+          }
+          delay(300);
+          statusKebuka = 1;
+          if(j == 90){
+            i = 0;
+          }
+        }
+      }
+    }
+    else if(rainValue > 500 && statusKebuka == 1){
+      for(int i = 0; i < 3; i++){
+        for(int j = 90; j >=0; j-=15){
+          ourServo[i].write(j);
+          for(int k = 0; k >= 0; k -= 30){
+            ourServo[3].write(k);
+            delay(300);
+          }
+          delay(300);
+          statusKebuka = 0;
+          if(j == 0){
+            i = 0;
+          }
+        }
+      }
+    }
+  }
+
+  // tambahkan delay sebelum membaca ulang nilai sensor
+  delay(500);
+}
